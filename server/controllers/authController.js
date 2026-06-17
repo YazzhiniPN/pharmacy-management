@@ -7,55 +7,60 @@ async function userLogin(req,res){
         if(!req.body.username || !req.body.password){
             return res.json({err: "Invalid Creddentials"});
         }
+
         const found = await User.findOne({username: req.body.username});
         if(!found){
             return res.status(403).json({err: "Invalid credentials"});
         }
+
         const isMatch = await bcrypt.compare(req.body.password, found.password);
-        if(isMatch){
-            const accessToken = jwt.sign(
-                {
-                    id: found._id,
-                    role: found.role
-                },
-                process.env.ACCESS_TOKEN_SECRET,
-                {
-                    expiresIn: "15m" 
-                }
-            );
-
-            const refreshToken = jwt.sign(
-                {
-                    id: found._id,
-                },
-                process.env.REFRESH_TOKEN_SECRET,
-                {
-                    expiresIn: "7d"
-                }
-            );
-
-            res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: false,
-                sameSite: "lax",
-                maxAge: 7*24*60*60*1000
-            })
-
-            return res.json({
-                msg: "Login Successful",
-                accessToken,
-                user: {
-                    username: found.username, 
-                    role: found.role
-                }
-            });
-        }
-        else{
+        if(!isMatch){
             return res.status(403).json({
                 err: "Invalid credentials"
-            })
-        }        
+            });
+        }
+
+        const accessToken = jwt.sign(
+            {
+                id: found._id,
+                role: found.role
+            },
+            process.env.ACCESS_TOKEN_SECRET,
+            {
+                expiresIn: "15m" 
+            }
+        );
+
+        const refreshToken = jwt.sign(
+           {
+                id: found._id,
+            },
+            process.env.REFRESH_TOKEN_SECRET,
+            {
+                expiresIn: "7d"
+            }
+        );
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            maxAge: 7*24*60*60*1000
+        });
+
+        found.refreshToken = refreshToken;
+        await found.save();
+
+        return res.json({
+            msg: "Login Successful",
+            accessToken,
+            user: {
+                username: found.username, 
+                role: found.role
+            }
+        });
     }
+
     catch(err){
         return res.json({err: err.message})
     }
@@ -64,8 +69,8 @@ async function userLogin(req,res){
 
 async function userRegister(req,res){
     try{
-        if(!req.body.username || !req.body.password){
-            return res.json({err: "Invalid credentials"});
+        if(!req.body.username || !req.body.password || !req.body.name || !req.body.email){
+            return res.status(400).json({err: "Required fields missing"});
         }
         const found = await User.findOne({
             $or: [
@@ -74,7 +79,7 @@ async function userRegister(req,res){
             ]
         });
         if(found){
-            return res.json({err: "Username already taken"});
+            return res.status(400).json({err: "Username or email already taken"});
         }
         const hashedPassword = await bcrypt.hash(req.body.password,10);
         const newUser = new User({
