@@ -102,4 +102,66 @@ async function userRegister(req,res){
     }
 }
 
-module.exports = {userRegister, userLogin};
+async function userLogout(req,res){
+    try{
+        const refreshToken = req.cookies.refreshToken;
+        if(!refreshToken){
+            return res.status(400).json({err: "No refresh Token found"});
+        }
+        const user = await User.findOne({refreshToken: refreshToken});
+        if(user){
+            user.refreshToken = null;
+            await user.save();
+        }
+    
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax"
+        })
+
+        return res.json({msg: "Logged Out"});
+    }
+    catch(err){
+        return res.json({err: err.message});
+    }
+}
+
+async function refreshAccessToken(req,res){
+    try{
+        const refreshToken = req.cookies.refreshToken;
+        if(!refreshToken){
+            return res.status(400).json({err: "No refresh token found"});
+        }
+
+        const decoded = jwt.verify(
+            refreshToken,
+            process.env.REFRESH_TOKEN_SECRET
+        ) // to check the refresh token is not expired/modified
+
+        const user = await User.findOne({refreshToken: refreshToken});
+        if(!user){
+            return res.status(400).json({err: "User not found"});
+        }
+
+        //if(user.refreshToken !== refreshToken){ // not req because we are checking the db with the ref token , if it doesn't match we won't get any
+           
+        const accessToken = jwt.sign(
+        {
+            id: user._id,
+            role: user.role
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        {
+            expiresIn: "15m"
+        }
+        );
+        return res.json({accessToken});        
+    }
+    catch(err){
+        return res.status(403).json({err: err.message});
+    }
+}
+
+
+module.exports = {userRegister, userLogin, userLogout, refreshAccessToken};
