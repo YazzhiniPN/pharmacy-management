@@ -16,7 +16,8 @@ async function verifyToken(req,res,next){
             process.env.ACCESS_TOKEN_SECRET
         );
 
-        const user = await User.findById(decoded.id);
+        const user = await User.findById(decoded.id); //to chcek if the user exists, because while deleting a user,
+                                                 //  we don't remove his tokens, so we check here
         if(!user){
             return res.status(401).json({err: "User no longer exists"})
         }
