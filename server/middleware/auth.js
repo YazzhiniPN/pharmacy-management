@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-function verifyToken(req,res,next){
+async function verifyToken(req,res,next){
     try{
         const authHeader = req.headers.authorization;
 
@@ -9,12 +10,19 @@ function verifyToken(req,res,next){
         }
 
         const token = authHeader.split(" ")[1];
+
         const decoded = jwt.verify(
             token,
-            process.env.ACCESS_SECRET_TOKEN
+            process.env.ACCESS_TOKEN_SECRET
         );
 
-        req.user = decoded;      //this stores the user's info who is logged in and 
+        const user = await User.findById(decoded.id);
+        if(!user){
+            return res.status(401).json({err: "User no longer exists"})
+        }
+
+
+        req.user = user;      //this stores the user's info who is logged in and 
                                 // it adds it to req, so in the next step, 
                                 // we can check if the user is allowed to do that function
         next();
