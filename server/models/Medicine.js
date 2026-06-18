@@ -31,6 +31,16 @@ const medicineSchema = new mongoose.Schema({
     },
     supplierName:{
         type: String
+    },
+    alerts: {
+        lowStock: {
+            type: Boolean,
+            default: false
+        },
+        nearExpiry: {
+            type: Boolean,
+            default: false
+        }
     }
 },{
     timestamps: true
