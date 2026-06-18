@@ -10,7 +10,7 @@ const supplierRoutes = require("./routes/supplierRoutes");
 const medicineRoutes = require("./routes/medicineRoutes");
 const saleRoutes = require("./routes/saleRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
-const {verifyToken, verifyAdmin} = require("./middleware/auth");
+const {startCronJob} = require("./utils/cronJob");
 
 const app = express();
 
@@ -18,6 +18,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 connectDB();
+startCronJob();
 
 app.get("/",(req,res)=>{
     res.send("Pharmacy Management System");
