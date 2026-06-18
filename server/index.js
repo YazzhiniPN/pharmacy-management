@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
+const supplierRoutes = require("./routes/supplierRoutes");
 const {verifyToken, verifyAdmin} = require("./middleware/auth");
 
 const app = express();
@@ -21,6 +22,7 @@ app.get("/",(req,res)=>{
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/suppliers", supplierRoutes);
 
 const PORT = process.env.PORT || 5000;
 

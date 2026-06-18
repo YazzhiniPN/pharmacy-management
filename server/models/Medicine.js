@@ -23,7 +23,6 @@ const medicineSchema = new mongoose.Schema({
     },
     threshold:{
         type: Number,
-        required: true,
         default: 10
     },
     supplier: {
