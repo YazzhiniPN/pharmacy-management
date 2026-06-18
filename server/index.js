@@ -9,6 +9,7 @@ const userRoutes = require("./routes/userRoutes");
 const supplierRoutes = require("./routes/supplierRoutes");
 const medicineRoutes = require("./routes/medicineRoutes");
 const saleRoutes = require("./routes/saleRoutes");
+const analyticsRoutes = require("./routes/analyticsRoutes");
 const {verifyToken, verifyAdmin} = require("./middleware/auth");
 
 const app = express();
@@ -27,6 +28,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/suppliers", supplierRoutes);
 app.use("/api/medicines", medicineRoutes);
 app.use("/api/sales", saleRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 const PORT = process.env.PORT || 5000;
 
