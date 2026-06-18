@@ -52,7 +52,7 @@ async function deleteSupplier(req,res){
             return res.status(404).json({err: "Supplier not found"});
         }
 
-        return res.json({msg: "Supplier deleted"});
+        return res.json({msg: "Supplier deleted", deletedSupplier: supplier});
     } catch (err) {
         return res.status(500).json({err: err.message});
     }

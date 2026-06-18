@@ -8,11 +8,11 @@ async function addMedicine(req,res){
             return res.status(400).json({err: "Insufficient Data"});
         }
 
-        const supplier = await Supplier.findOne({supplierName: req.body.supplierName});
+        const supplier = await Supplier.findOne({name: req.body.supplierName});
         if(!supplier){
             return res.status(404).json({err: "Invalid Supplier"})
         }
-        
+
         const newMedicine = new Medicine({
             name: req.body.name,
             price: req.body.price,
@@ -33,4 +33,45 @@ async function addMedicine(req,res){
     }
 }
 
-module.exports = {addMedicine};
+async function getMedicine(req,res){
+    try {
+        const medicine = await Medicine.findOne({name: req.params.name});
+        
+        if(!medicine){
+            return res.status(404).json({err: "Medicine Not found"});
+        }
+
+        if(req.user.role === "staff"){
+            medicine.supplier = null;
+        }
+
+        return res.json({msg: "Medicine found", medicine: medicine});
+    } 
+    catch (err) {
+        return res.status(500).json({err: err.message});
+    }
+}
+
+async function getMedicines(req,res){
+    try {
+        const medicines = await Medicine.find();
+        return res.json({medicines: medicines});
+    } catch (err) {
+        return res.status(500).json({err: err.message});
+    }
+}
+
+
+async function deleteMedicine(req,res){
+    try {
+        const medicine = await Medicine.findOneAndDelete({name: req.params.name});
+        if(!medicine){
+            return res.status(404).json({err: "Medicine not found"});
+        }
+        return res.json({msg: "Medicine deleted", deletedMedicine: medicine});
+    } catch (err) {
+        return res.status(500).json({err: err.message});
+    }
+}
+
+module.exports = {addMedicine, getMedicine, getMedicines, deleteMedicine};
